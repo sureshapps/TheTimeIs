@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Modern Alarm Clock & Stopwatch</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta id="extViewportMeta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap'>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #e63946;
+            --dark: #1d3557;
+            --light: #f8f9fa;
+            --gray: #adb5bd;
+            --gray-light: #e9ecef;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Glassmorphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: var(--shadow);
+        }
+        
+        .glass-dark {
+            background: rgba(29, 53, 87, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(29, 53, 87, 0.18);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-secondary {
+            background: var(--white);
+            color: var(--dark);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--warning) 100%);
+            color: var(--white);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Toggle Switch */
+        .toggle-checkbox:checked + .toggle-label {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+        
+        .toggle-checkbox:checked + .toggle-label .toggle-dot {
+            transform: translateX(100%);
+            background-color: var(--white);
+        }
+        
+        .toggle-checkbox:not(:checked) + .toggle-label {
+            background-color: var(--gray-light);
+        }
+        
+        .toggle-label {
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-dot {
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+        
+        .analog-clock-hand {
+            transform-origin: center center;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Alarm days styling */
+        .alarm-days {
+            font-size: 0.6rem;
+            letter-spacing: 0.05em;
+            color: var(--gray);
+        }
+        
+        .alarm-day-active {
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        /* Active/Inactive Nav Item */
+        .nav-item-active svg {
+            color: var(--primary);
+        }
+        
+        .nav-item-active span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-item-inactive svg {
+            color: var(--gray);
+        }
+        
+        .nav-item-inactive span {
+            color: var(--gray);
+        }
+        
+        /* Modal styling */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            z-index: 101;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Stopwatch lap styling */
+        .lap-item {
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .lap-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Card styling */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Stopwatch circle */
+        .stopwatch-circle {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Analog clock */
+        .analog-clock {
+            background: linear-gradient(135deg, var(--dark) 0%, #2a3d66 100%);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Input styling */
+        .styled-input {
+            background: var(--gray-light);
+            border: none;
+            border-radius: var(--radius);
+            transition: all 0.3s ease;
+        }
+        
+        .styled-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+        
+        /* Day button in alarm modal */
+        .day-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .day-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            box-shadow: var(--shadow);
+        }
+        
+        /* Animation for active states */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* New greeting styles */
+        .greeting-container {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .greeting-emoji {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex justify-center items-center min-h-screen p-4 font-inter" x-data="app()" x-init="initApp()">
+        <div class="glass rounded-[40px] w-[375px] h-[812px] p-6 flex flex-col overflow-hidden">
+            <!-- Screen 1: Clock -->
+            <main x-show="activeScreen === 'clock'" class="flex-grow flex flex-col h-full">
+                <!-- Removed location header -->
+
+                <div class="text-center mb-6">
+                    <p x-text="currentDate" class="text-xs" style="color: var(--gray);"></p>
+                    <p class="text-5xl font-bold mt-1 gradient-text">
+                        <span x-text="currentTime.time"></span>
+                        <span x-text="currentTime.period" class="text-3xl align-baseline"></span>
+                    </p>
+                </div>
+
+                <div class="flex-grow flex flex-col justify-center items-center mb-6">
+                    <!-- Digital Time Display -->
+                    <div class="mb-8 text-center">
+                        <!-- Updated Greeting with Emoji -->
+                        <div class="greeting-emoji" x-text="greetingEmoji"></div>
+                        <p x-text="greeting" class="text-3xl font-bold greeting-container"></p>
+                    </div>
+                    
+                    <!-- Flat Analog Clock -->
+                    <div class="relative w-56 h-56 mb-6">
+                        <!-- Clock Face -->
+                        <div class="absolute inset-0 rounded-full" style="background: var(--white); box-shadow: 0 8px 25px rgba(0,0,0,0.1);"></div>
+                        
+                        <!-- Hour Markers - Removed gray dots for 12,3,6,9 -->
+                        <div class="absolute inset-0">
+                            <!-- Main hour markers (12, 3, 6, 9) - now just numbers -->
+                            <div class="absolute top-3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-sm font-bold" style="color: var(--primary);">12</div>
+                            <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 translate-y-1/2 text-sm font-bold" style="color: var(--primary);">6</div>
+                            <div class="absolute left-3 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-sm font-bold" style="color: var(--primary);">9</div>
+                            <div class="absolute right-3 top-1/2 transform translate-x-1/2 -translate-y-1/2 text-sm font-bold" style="color: var(--primary);">3</div>
+                            
+                            <!-- Secondary hour markers -->
+                            <template x-for="i in 12" :key="i">
+                                <div class="absolute w-1 h-2 rounded-full" 
+                                     :style="{
+                                         background: [1,2,4,5,7,8,10,11].includes(i) ? 'var(--gray-light)' : 'transparent',
+                                         transform: `rotate(${i * 30}deg) translateY(-100px)`,
+                                         left: '50%',
+                                         top: '50%',
+                                         marginLeft: '-0.5px',
+                                         marginTop: '-1px'
+                                     }"></div>
+                            </template>
+                        </div>
+                        
+                        <!-- Clock Hands -->
+                        <div class="absolute inset-0">
+                            <!-- Hour Hand -->
+                            <div class="absolute left-1/2 top-1/2 w-1 h-16 -ml-0.5 -mt-16 rounded-full origin-bottom" 
+                                 :style="{ 
+                                     transform: `rotate(${hourAngle}deg)`,
+                                     background: 'var(--primary)'
+                                 }"></div>
+                            
+                            <!-- Minute Hand -->
+                            <div class="absolute left-1/2 top-1/2 w-1 h-20 -ml-0.5 -mt-20 rounded-full origin-bottom" 
+                                 :style="{ 
+                                     transform: `rotate(${minuteAngle}deg)`,
+                                     background: 'var(--secondary)'
+                                 }"></div>
+                            
+                            <!-- Second Hand -->
+                            <div class="absolute left-1/2 top-1/2 w-0.5 h-24 -ml-0.25 -mt-24 rounded-full origin-bottom" 
+                                 :style="{ 
+                                     transform: `rotate(${secondAngle}deg)`,
+                                     background: 'var(--accent)'
+                                 }"></div>
+                            
+                            <!-- Center Dot -->
+                            <div class="absolute left-1/2 top-1/2 w-3 h-3 -ml-1.5 -mt-1.5 rounded-full z-10" 
+                                 style="background: var(--accent);"></div>
+                        </div>
+                        
+                        <!-- Branding - Replaced Day with "sureshks" -->
+                        <div class="absolute bottom-6 left-0 right-0 text-center">
+                            <p class="text-xs font-medium-text" style="color: var(--gray);">sureshks</p>
+                        </div>
+                    </div>
+
+<!-- Location & Weather (Placeholder) -->
+<div class="text-center">
+    <div class="flex items-center justify-center text-sm" style="color: var(--gray);">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-1">
+            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+        </svg>
+        <span x-text="location"></span>
+        <span class="mx-2">•</span>
+        <span>24°C Sunny</span>
+    </div>
+</div>
+                </div>
+            </main>
+
+            <!-- Screen 2: Alarm -->
+            <main x-show="activeScreen === 'alarm'" class="flex-grow flex flex-col h-full">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-2xl font-semibold gradient-text">Set Alarm</h1>
+                    <button @click="showAddAlarmModal = true" class="btn-primary w-10 h-10 rounded-full flex items-center justify-center pulse">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-3 overflow-y-auto flex-grow pr-1">
+                    <template x-for="alarm in alarms" :key="alarm.id">
+                        <div class="card p-4 flex items-center justify-between">
+                            <div @click="editAlarm(alarm)" class="flex-grow cursor-pointer">
+                                <p class="font-semibold" style="color: var(--dark);" x-text="alarm.title"></p>
+                                <p class="text-2xl font-bold gradient-text" x-text="alarm.time"></p>
+                                <div class="alarm-days flex space-x-1 mt-1">
+                                    <span :class="{'alarm-day-active': alarm.days.includes(0)}">S</span>
+                                    <span :class="{'alarm-day-active': alarm.days.includes(1)}">M</span>
+                                    <span :class="{'alarm-day-active': alarm.days.includes(2)}">T</span>
+                                    <span :class="{'alarm-day-active': alarm.days.includes(3)}">W</span>
+                                    <span :class="{'alarm-day-active': alarm.days.includes(4)}">T</span>
+                                    <span :class="{'alarm-day-active': alarm.days.includes(5)}">F</span>
+                                    <span :class="{'alarm-day-active': alarm.days.includes(6)}">S</span>
+                                </div>
+                            </div>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" :name="'toggle-' + alarm.id" :id="'toggle-' + alarm.id" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer opacity-0" x-model="alarm.enabled" @change="toggleAlarm(alarm)"/>
+                                <label :for="'toggle-' + alarm.id" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer">
+                                    <span class="toggle-dot absolute left-0 top-0 inline-block w-6 h-6 rounded-full bg-white shadow transform transition-transform duration-200 ease-in-out"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="alarms.length === 0" class="text-center py-8" style="color: var(--gray);">
+                        No alarms set. Click the + button to add one.
+                    </div>
+                </div>
+            </main>
+
+            <!-- Screen 3: Stopwatch -->
+            <main x-show="activeScreen === 'stopwatch'" class="flex-grow flex flex-col h-full">
+                <div class="flex justify-between items-center mb-8">
+                    <h1 class="text-4xl font-semibold gradient-text">Stopwatch</h1>
+                </div>
+
+                <div class="w-64 h-64 rounded-full flex items-center justify-center mb-8 mx-auto stopwatch-circle">
+                    <div class="w-56 h-56 rounded-full glass flex items-center justify-center">
+                        <span class="text-5xl font-bold" style="color: var(--dark);" x-text="stopwatchDisplay"></span>
+                    </div>
+                </div>
+                
+                <div class="flex justify-center space-x-4 mb-6">
+                    <button @click="toggleStopwatch()"
+                            class="btn-accent text-lg font-semibold py-3 px-8 rounded-xl"
+                            x-text="stopwatchRunning ? 'Pause' : 'Start'">
+                    </button>
+                    <button @click="recordLap()" x-show="stopwatchRunning"
+                            class="btn-secondary text-lg font-semibold py-3 px-8 rounded-xl">
+                        Lap
+                    </button>
+                    <button @click="resetStopwatch()" x-show="!stopwatchRunning && stopwatchTime > 0"
+                            class="btn-secondary text-lg font-semibold py-3 px-8 rounded-xl">
+                        Reset
+                    </button>
+                </div>
+                
+                <div class="flex-grow overflow-y-auto pr-1">
+                    <h2 class="text-sm font-semibold mb-3" style="color: var(--dark);">Lap History</h2>
+                    <div class="space-y-2">
+                        <template x-for="(lap, index) in stopwatchLaps" :key="index">
+                            <div class="lap-item flex justify-between items-center py-2">
+                                <span style="color: var(--gray);" x-text="'Lap ' + (stopwatchLaps.length - index)"></span>
+                                <span class="font-semibold gradient-text" x-text="formatTime(lap.time)"></span>
+                            </div>
+                        </template>
+                        <div x-show="stopwatchLaps.length === 0" class="text-center py-4" style="color: var(--gray);">
+                            No lap history yet
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Add/Edit Alarm Modal -->
+            <div x-show="showAddAlarmModal || showEditAlarmModal" class="fixed inset-0 flex items-center justify-center modal-overlay">
+                <div class="card p-6 w-80 modal-content">
+                    <h2 class="text-xl font-semibold mb-4 gradient-text" x-text="showEditAlarmModal ? 'Edit Alarm' : 'Add Alarm'"></h2>
+                    
+                    <div class="mb-6 text-center">
+                        <div class="flex justify-center items-center space-x-4">
+                            <input type="number" min="1" max="12" x-model="newAlarm.hours" class="w-16 text-4xl font-bold text-center styled-input" />
+                            <span class="text-4xl font-bold gradient-text">:</span>
+                            <input type="number" min="0" max="59" x-model="newAlarm.minutes" class="w-16 text-4xl font-bold text-center styled-input" />
+                            <div class="flex flex-col ml-4">
+                                <button @click="newAlarm.period = 'AM'" class="text-lg px-2 py-1 rounded day-btn" :class="newAlarm.period === 'AM' ? 'active' : ''">AM</button>
+                                <button @click="newAlarm.period = 'PM'" class="text-lg px-2 py-1 rounded mt-1 day-btn" :class="newAlarm.period === 'PM' ? 'active' : ''">PM</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2" style="color: var(--dark);">Alarm Label</label>
+                        <input type="text" x-model="newAlarm.title" class="w-full p-2 styled-input" placeholder="Alarm label">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2" style="color: var(--dark);">Repeat</label>
+                        <div class="flex justify-between">
+                            <template x-for="(day, index) in ['S', 'M', 'T', 'W', 'T', 'F', 'S']">
+                                <button @click="toggleDay(index)" class="w-8 h-8 rounded-full flex items-center justify-center day-btn" :class="newAlarm.days.includes(index) ? 'active' : ''">
+                                    <span x-text="day"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2" style="color: var(--dark);">Sound</label>
+                        <select x-model="newAlarm.sound" class="w-full p-2 styled-input">
+                            <option value="beep">Beep</option>
+                            <option value="bell">Bell</option>
+                            <option value="chime">Chime</option>
+                            <option value="digital">Digital</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex justify-between">
+                        <button @click="cancelAlarmModal()" class="btn-secondary px-4 py-2 rounded-lg">Cancel</button>
+                        <button @click="saveAlarm()" class="btn-primary px-4 py-2 rounded-lg">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alarm Ringing Modal -->
+            <div x-show="ringingAlarm" class="fixed inset-0 flex items-center justify-center modal-overlay">
+                <div class="card p-6 w-80 modal-content text-center">
+                    <h2 class="text-xl font-semibold mb-2 gradient-text" x-text="ringingAlarm.title"></h2>
+                    <p class="text-3xl font-bold mb-6 gradient-text" x-text="ringingAlarm.time"></p>
+                    <button @click="stopAlarm()" class="w-full py-3 btn-accent rounded-lg text-lg font-semibold">
+                        Stop Alarm
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <nav class="flex justify-around items-center pt-4 mt-auto border-t" style="border-color: var(--gray-light);">
+                <button @click="activeScreen = 'alarm'" class="flex flex-col items-center space-y-1" :class="activeScreen === 'alarm' ? 'nav-item-active' : 'nav-item-inactive'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                    </svg>
+                    <span class="text-xs font-medium">Alarm</span>
+                </button>
+                <button @click="activeScreen = 'clock'" class="flex flex-col items-center space-y-1" :class="activeScreen === 'clock' ? 'nav-item-active' : 'nav-item-inactive'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="text-xs font-medium">Clock</span>
+                </button>
+                <button @click="activeScreen = 'stopwatch'" class="flex flex-col items-center space-y-1" :class="activeScreen === 'stopwatch' ? 'nav-item-active' : 'nav-item-inactive'">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h12.5m-4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3.75v1.5M12 20.25v-1.5M5.25 12h-1.5M20.25 12h-1.5M7.05 7.05l-1.06-1.06M18.01 18.01l-1.06-1.06M7.05 16.95l-1.06 1.06M18.01 5.99l-1.06 1.06" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.25V4.5M12 19.5v2.25M4.5 12H2.25M19.5 12h2.25M6.345 6.345l-1.59-1.59M17.655 17.655l-1.59-1.59M6.345 17.655l-1.59 1.59M17.655 6.345l-1.59-1.59" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.25V1.5M10.5 1.5h3" />
+                    </svg>
+                    <span class="text-xs font-medium">Stopwatch</span>
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Audio element for alarm sounds -->
+        <audio id="alarmSound" preload="auto">
+            <source src="https://assets.mixkit.co/active_storage/sfx/250/250-preview.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <script>
+        function app() {
+            return {
+                activeScreen: 'clock',
+                // Clock Screen Data
+                location: 'Sydney',
+                currentDate: 'Friday, 01 January 2021',
+                currentTime: { time: '00:00', period: 'AM' },
+                greeting: 'Good Evening',
+                greetingEmoji: '🌙',
+                hourAngle: 0,
+                minuteAngle: 0,
+                secondAngle: 0,
+
+                // Alarm Screen Data
+                alarms: [],
+                showAddAlarmModal: false,
+                showEditAlarmModal: false,
+                editingAlarmId: null,
+                newAlarm: {
+                    id: null,
+                    title: 'Alarm',
+                    hours: 7,
+                    minutes: 0,
+                    period: 'AM',
+                    days: [],
+                    enabled: true,
+                    sound: 'beep'
+                },
+                ringingAlarm: null,
+                alarmAudio: null,
+
+                // Stopwatch Screen Data
+                stopwatchTime: 0,
+                stopwatchDisplay: '00:00.00',
+                stopwatchInterval: null,
+                stopwatchRunning: false,
+                stopwatchLaps: [],
+                stopwatchStartTime: 0,
+                stopwatchPauseTime: 0,
+
+                initApp() {
+                    // Load alarms from localStorage
+                    this.loadAlarms();
+                    
+                    // Initialize audio element
+                    this.alarmAudio = document.getElementById('alarmSound');
+                    
+                    // Start the clock
+                    this.updateLiveTime();
+                    setInterval(() => this.updateLiveTime(), 1000);
+                    
+                    // Check for alarms every second
+                    setInterval(() => this.checkAlarms(), 1000);
+                    
+                    // Try to get location
+                    this.getLocation();
+                },
+
+                updateLiveTime() {
+                    const now = new Date();
+                    this.currentDate = now.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        day: '2-digit', 
+                        month: 'long', 
+                        year: 'numeric' 
+                    });
+                    
+                    let hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const seconds = now.getSeconds();
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12;
+                    
+                    this.currentTime.time = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    this.currentTime.period = ampm;
+
+                    // Calculate angles for analog clock
+                    this.hourAngle = (hours * 30) + (minutes / 60 * 30);
+                    this.minuteAngle = (minutes * 6);
+                    this.secondAngle = (seconds * 6);
+
+                    const currentHour = now.getHours();
+                    if (currentHour < 12) {
+                        this.greeting = 'Good Morning';
+                        this.greetingEmoji = '☀️';
+                    } else if (currentHour < 18) {
+                        this.greeting = 'Good Afternoon';
+                        this.greetingEmoji = '🌤️';
+                    } else {
+                        this.greeting = 'Good Evening';
+                        this.greetingEmoji = '🌙';
+                    }
+                },
+
+                getLocation() {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                // In a real app, you would reverse geocode to get the city name
+                                this.location = 'Current Location';
+                            },
+                            (error) => {
+                                console.log('Location access denied or unavailable');
+                            }
+                        );
+                    }
+                },
+
+                loadAlarms() {
+                    const savedAlarms = localStorage.getItem('alarms');
+                    if (savedAlarms) {
+                        this.alarms = JSON.parse(savedAlarms);
+                    } else {
+                        // Default alarms
+                        this.alarms = [
+                            { 
+                                id: 1, 
+                                title: 'Morning Exercise', 
+                                hours: 6, 
+                                minutes: 30, 
+                                period: 'AM', 
+                                time: '06:30 AM',
+                                days: [1, 2, 3, 4, 5], // Mon-Fri
+                                enabled: true,
+                                sound: 'beep'
+                            },
+                            { 
+                                id: 2, 
+                                title: 'Study', 
+                                hours: 9, 
+                                minutes: 0, 
+                                period: 'AM', 
+                                time: '09:00 AM',
+                                days: [0, 6], // Weekend
+                                enabled: true,
+                                sound: 'bell'
+                            },
+                            { 
+                                id: 3, 
+                                title: 'Online Class', 
+                                hours: 1, 
+                                minutes: 0, 
+                                period: 'PM', 
+                                time: '01:00 PM',
+                                days: [1, 3, 5], // Mon, Wed, Fri
+                                enabled: true,
+                                sound: 'chime'
+                            }
+                        ];
+                        this.saveAlarms();
+                    }
+                },
+
+                saveAlarms() {
+                    localStorage.setItem('alarms', JSON.stringify(this.alarms));
+                },
+
+                openAddAlarmModal() {
+                    this.newAlarm = {
+                        id: null,
+                        title: 'Alarm',
+                        hours: 7,
+                        minutes: 0,
+                        period: 'AM',
+                        days: [],
+                        enabled: true,
+                        sound: 'beep'
+                    };
+                    this.showAddAlarmModal = true;
+                },
+
+                editAlarm(alarm) {
+                    this.newAlarm = {...alarm};
+                    this.editingAlarmId = alarm.id;
+                    this.showEditAlarmModal = true;
+                },
+
+                toggleDay(dayIndex) {
+                    const index = this.newAlarm.days.indexOf(dayIndex);
+                    if (index === -1) {
+                        this.newAlarm.days.push(dayIndex);
+                    } else {
+                        this.newAlarm.days.splice(index, 1);
+                    }
+                },
+
+                saveAlarm() {
+                    // Format time for display
+                    const timeStr = `${String(this.newAlarm.hours).padStart(2, '0')}:${String(this.newAlarm.minutes).padStart(2, '0')} ${this.newAlarm.period}`;
+                    
+                    if (this.showEditAlarmModal && this.editingAlarmId) {
+                        // Update existing alarm
+                        const index = this.alarms.findIndex(a => a.id === this.editingAlarmId);
+                        if (index !== -1) {
+                            this.alarms[index] = {
+                                ...this.newAlarm,
+                                time: timeStr
+                            };
+                        }
+                    } else {
+                        // Add new alarm
+                        const newId = this.alarms.length > 0 ? Math.max(...this.alarms.map(a => a.id)) + 1 : 1;
+                        this.alarms.push({
+                            ...this.newAlarm,
+                            id: newId,
+                            time: timeStr
+                        });
+                    }
+                    
+                    this.saveAlarms();
+                    this.cancelAlarmModal();
+                },
+
+                cancelAlarmModal() {
+                    this.showAddAlarmModal = false;
+                    this.showEditAlarmModal = false;
+                    this.editingAlarmId = null;
+                    this.newAlarm = {
+                        id: null,
+                        title: 'Alarm',
+                        hours: 7,
+                        minutes: 0,
+                        period: 'AM',
+                        days: [],
+                        enabled: true,
+                        sound: 'beep'
+                    };
+                },
+
+                toggleAlarm(alarm) {
+                    // The toggle is already handled by x-model, we just need to save
+                    this.saveAlarms();
+                },
+
+                checkAlarms() {
+                    const now = new Date();
+                    const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+                    const currentHours = now.getHours();
+                    const currentMinutes = now.getMinutes();
+                    
+                    // Convert to 12-hour format for comparison
+                    let current12Hour = currentHours % 12;
+                    current12Hour = current12Hour ? current12Hour : 12;
+                    const currentPeriod = currentHours >= 12 ? 'PM' : 'AM';
+                    
+                    for (const alarm of this.alarms) {
+                        if (alarm.enabled && 
+                            alarm.hours == current12Hour && 
+                            alarm.minutes == currentMinutes && 
+                            alarm.period == currentPeriod &&
+                            (alarm.days.length === 0 || alarm.days.includes(currentDay))) {
+                            
+                            // Check if we haven't already triggered this alarm in the last minute
+                            const lastTriggered = localStorage.getItem(`alarm_${alarm.id}_last_triggered`);
+                            const currentTime = now.getTime();
+                            
+                            if (!lastTriggered || (currentTime - parseInt(lastTriggered)) > 60000) {
+                                this.triggerAlarm(alarm);
+                                localStorage.setItem(`alarm_${alarm.id}_last_triggered`, currentTime.toString());
+                            }
+                        }
+                    }
+                },
+
+                triggerAlarm(alarm) {
+                    this.ringingAlarm = alarm;
+                    
+                    // Play alarm sound
+                    if (this.alarmAudio) {
+                        this.alarmAudio.currentTime = 0;
+                        this.alarmAudio.play().catch(e => console.log('Audio play failed:', e));
+                    }
+                },
+
+                stopAlarm() {
+                    this.ringingAlarm = null;
+                    
+                    // Stop alarm sound
+                    if (this.alarmAudio) {
+                        this.alarmAudio.pause();
+                        this.alarmAudio.currentTime = 0;
+                    }
+                },
+
+                toggleStopwatch() {
+                    if (this.stopwatchRunning) {
+                        // Pause
+                        clearInterval(this.stopwatchInterval);
+                        this.stopwatchPauseTime = this.stopwatchTime;
+                    } else {
+                        // Start or resume
+                        this.stopwatchStartTime = Date.now() - (this.stopwatchPauseTime * 10);
+                        this.stopwatchInterval = setInterval(() => {
+                            this.stopwatchTime = Math.floor((Date.now() - this.stopwatchStartTime) / 10);
+                            this.updateStopwatchDisplay();
+                        }, 10);
+                    }
+                    this.stopwatchRunning = !this.stopwatchRunning;
+                },
+
+                updateStopwatchDisplay() {
+                    const totalCentiseconds = this.stopwatchTime;
+                    const minutes = Math.floor(totalCentiseconds / 6000);
+                    const seconds = Math.floor((totalCentiseconds % 6000) / 100);
+                    const centiseconds = totalCentiseconds % 100;
+                    
+                    this.stopwatchDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+                },
+
+                formatTime(centiseconds) {
+                    const minutes = Math.floor(centiseconds / 6000);
+                    const seconds = Math.floor((centiseconds % 6000) / 100);
+                    const cs = centiseconds % 100;
+                    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+                },
+
+                recordLap() {
+                    if (this.stopwatchRunning) {
+                        this.stopwatchLaps.unshift({
+                            time: this.stopwatchTime,
+                            timestamp: new Date()
+                        });
+                        
+                        // Keep only the last 10 laps
+                        if (this.stopwatchLaps.length > 10) {
+                            this.stopwatchLaps = this.stopwatchLaps.slice(0, 10);
+                        }
+                    }
+                },
+
+                resetStopwatch() {
+                    clearInterval(this.stopwatchInterval);
+                    this.stopwatchRunning = false;
+                    this.stopwatchTime = 0;
+                    this.stopwatchPauseTime = 0;
+                    this.stopwatchDisplay = '00:00.00';
+                    this.stopwatchLaps = [];
+                }
+            }
+        }
+    </script>
+</body>
+</html>
