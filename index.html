@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Modern Alarm Clock & Stopwatch</title>
+    <title>TheTimeis..</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-touch-fullscreen" content="yes">
     <meta id="extViewportMeta" name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
@@ -248,8 +248,9 @@
         }
         
         .greeting-emoji {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+            width: 128px;
+            height: 128px;
+            margin: 0 auto 0.5rem auto;
         }
     </style>
 </head>
@@ -271,8 +272,8 @@
                 <div class="flex-grow flex flex-col justify-center items-center mb-6">
                     <!-- Digital Time Display -->
                     <div class="mb-8 text-center">
-                        <!-- Updated Greeting with Emoji -->
-                        <div class="greeting-emoji" x-text="greetingEmoji"></div>
+                        <!-- Updated Greeting with Custom SVG Emojis -->
+                        <img :src="greetingEmoji" class="greeting-emoji" alt="Greeting emoji">
                         <p x-text="greeting" class="text-3xl font-bold greeting-container"></p>
                     </div>
                     
@@ -333,21 +334,21 @@
                         
                         <!-- Branding - Replaced Day with "sureshks" -->
                         <div class="absolute bottom-6 left-0 right-0 text-center">
-                            <p class="text-xs font-medium-text" style="color: var(--gray);">sureshks</p>
+                            <p class="text-xs font-medium-text" style="color: var(--gray-light);">sureshks</p>
                         </div>
                     </div>
 
-<!-- Location & Weather (Placeholder) -->
-<div class="text-center">
-    <div class="flex items-center justify-center text-sm" style="color: var(--gray);">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-1">
-            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-        </svg>
-        <span x-text="location"></span>
-        <span class="mx-2">•</span>
-        <span>24°C Sunny</span>
-    </div>
-</div>
+                    <!-- Location & Weather (Placeholder) -->
+                    <div class="text-center">
+                        <div class="flex items-center justify-center text-sm" style="color: var(--gray);">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 mr-1">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                            </svg>
+                            <span x-text="location"></span>
+                            <span class="mx-2">•</span>
+                            <span>24°C Sunny</span>
+                        </div>
+                    </div>
                 </div>
             </main>
 
@@ -537,7 +538,7 @@
                 currentDate: 'Friday, 01 January 2021',
                 currentTime: { time: '00:00', period: 'AM' },
                 greeting: 'Good Evening',
-                greetingEmoji: '🌙',
+                greetingEmoji: 'https://sureshapps.github.io/TheTimeIs/evening.svg',
                 hourAngle: 0,
                 minuteAngle: 0,
                 secondAngle: 0,
@@ -614,13 +615,13 @@
                     const currentHour = now.getHours();
                     if (currentHour < 12) {
                         this.greeting = 'Good Morning';
-                        this.greetingEmoji = '☀️';
+                        this.greetingEmoji = 'https://sureshapps.github.io/TheTimeIs/morning.svg';
                     } else if (currentHour < 18) {
                         this.greeting = 'Good Afternoon';
-                        this.greetingEmoji = '🌤️';
+                        this.greetingEmoji = 'https://sureshapps.github.io/TheTimeIs/afternoon.svg';
                     } else {
                         this.greeting = 'Good Evening';
-                        this.greetingEmoji = '🌙';
+                        this.greetingEmoji = 'https://sureshapps.github.io/TheTimeIs/evening.svg';
                     }
                 },
 
@@ -628,14 +629,40 @@
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(
                             (position) => {
-                                // In a real app, you would reverse geocode to get the city name
-                                this.location = 'Current Location';
+                                // Get actual city name using reverse geocoding
+                                this.reverseGeocode(position.coords.latitude, position.coords.longitude);
                             },
                             (error) => {
                                 console.log('Location access denied or unavailable');
+                                this.location = 'Location unavailable';
                             }
                         );
+                    } else {
+                        this.location = 'Geolocation not supported';
                     }
+                },
+
+                reverseGeocode(lat, lon) {
+                    // Using OpenStreetMap Nominatim API for reverse geocoding
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.address) {
+                                // Try to get city, town, or village name
+                                const city = data.address.city || data.address.town || data.address.village || data.address.county;
+                                if (city) {
+                                    this.location = city;
+                                } else {
+                                    this.location = 'Unknown location';
+                                }
+                            } else {
+                                this.location = 'Unknown location';
+                            }
+                        })
+                        .catch(error => {
+                            console.log('Reverse geocoding failed:', error);
+                            this.location = 'Location unavailable';
+                        });
                 },
 
                 loadAlarms() {
